@@ -1,5 +1,5 @@
 {
-    "updatedAt": "2026-05-12T08:44:36.578Z",
+    "updatedAt": "2026-05-12T09:58:31.523Z",
     "createdAt": "2026-05-11T21:22:24.931Z",
     "id": "V1jrrxRM3JYx3zgd",
     "name": "Gmail \u2192 Slack DM Notification",
@@ -47,7 +47,7 @@
                     "mode": "list",
                     "cachedResultName": "all-n8n-notifier"
                 },
-                "text": "=\ud83d\udce7 *New email received!*\n\n*From:* {{ $json.From }}\n*Subject:* {{ $json.Subject }}\n*Date:* {{ new Date(parseInt($json.internalDate)).toLocaleString('en-GB', {timeZone: 'Europe/London'}) }}\n\n{{ $json.snippet }}",
+                "text": "={{ $json.snippet }}",
                 "otherOptions": {}
             },
             "id": "slack-1",
@@ -64,7 +64,8 @@
                     "id": "uZM9SSbb87wKl1xf",
                     "name": "Slack OAuth2"
                 }
-            }
+            },
+            "onError": "continueRegularOutput"
         }
     ],
     "connections": {
@@ -91,9 +92,9 @@
         "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "b9f6a871-015d-4829-bac9-a10e3a5ac128",
+    "versionId": "a9b110c6-d667-46bc-bb96-59eb520ebc94",
     "activeVersionId": null,
-    "versionCounter": 5,
+    "versionCounter": 6,
     "triggerCount": 0,
     "shared": [
         {
