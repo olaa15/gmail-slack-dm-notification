@@ -1,0 +1,165 @@
+{
+    "updatedAt": "2026-05-12T08:44:36.578Z",
+    "createdAt": "2026-05-11T21:22:24.931Z",
+    "id": "V1jrrxRM3JYx3zgd",
+    "name": "Gmail \u2192 Slack DM Notification",
+    "description": null,
+    "active": false,
+    "isArchived": false,
+    "nodes": [
+        {
+            "parameters": {
+                "pollTimes": {
+                    "item": [
+                        {
+                            "mode": "everyX",
+                            "value": 10,
+                            "unit": "minutes"
+                        }
+                    ]
+                },
+                "filters": {
+                    "readStatus": "unread"
+                }
+            },
+            "id": "gmail-trigger-1",
+            "name": "Gmail Trigger",
+            "type": "n8n-nodes-base.gmailTrigger",
+            "typeVersion": 1.3,
+            "position": [
+                256,
+                304
+            ],
+            "credentials": {
+                "gmailOAuth2": {
+                    "id": "vsY3cCzq1rxv31FT",
+                    "name": "Gmail account 2"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "authentication": "oAuth2",
+                "select": "channel",
+                "channelId": {
+                    "__rl": true,
+                    "value": "C0B36D983FT",
+                    "mode": "list",
+                    "cachedResultName": "all-n8n-notifier"
+                },
+                "text": "=\ud83d\udce7 *New email received!*\n\n*From:* {{ $json.From }}\n*Subject:* {{ $json.Subject }}\n*Date:* {{ new Date(parseInt($json.internalDate)).toLocaleString('en-GB', {timeZone: 'Europe/London'}) }}\n\n{{ $json.snippet }}",
+                "otherOptions": {}
+            },
+            "id": "slack-1",
+            "name": "Slack",
+            "type": "n8n-nodes-base.slack",
+            "typeVersion": 2.4,
+            "position": [
+                512,
+                304
+            ],
+            "webhookId": "b9abe00c-2c08-48bf-ba31-a51b51a3d27b",
+            "credentials": {
+                "slackOAuth2Api": {
+                    "id": "uZM9SSbb87wKl1xf",
+                    "name": "Slack OAuth2"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Gmail Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Slack",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1",
+        "timezone": "Europe/London",
+        "callerPolicy": "workflowsFromSameOwner",
+        "availableInMCP": false
+    },
+    "staticData": null,
+    "meta": {
+        "templateCredsSetupCompleted": true
+    },
+    "pinData": {},
+    "versionId": "b9f6a871-015d-4829-bac9-a10e3a5ac128",
+    "activeVersionId": null,
+    "versionCounter": 5,
+    "triggerCount": 0,
+    "shared": [
+        {
+            "updatedAt": "2026-05-11T21:22:24.937Z",
+            "createdAt": "2026-05-11T21:22:24.937Z",
+            "role": "workflow:owner",
+            "workflowId": "V1jrrxRM3JYx3zgd",
+            "projectId": "ZneTUQ4bDzqH3uXl",
+            "project": {
+                "updatedAt": "2026-01-04T13:04:36.275Z",
+                "createdAt": "2026-01-04T13:01:34.470Z",
+                "id": "ZneTUQ4bDzqH3uXl",
+                "name": "Olawunmi ogunseye <ola.ogunseye@outlook.com>",
+                "type": "personal",
+                "icon": null,
+                "description": null,
+                "creatorId": "31d8f074-89e6-4496-b71d-73ff173d6e44",
+                "projectRelations": [
+                    {
+                        "updatedAt": "2026-01-04T13:01:34.470Z",
+                        "createdAt": "2026-01-04T13:01:34.470Z",
+                        "userId": "31d8f074-89e6-4496-b71d-73ff173d6e44",
+                        "projectId": "ZneTUQ4bDzqH3uXl",
+                        "user": {
+                            "updatedAt": "2026-05-11T23:00:24.000Z",
+                            "createdAt": "2026-01-04T13:01:34.245Z",
+                            "id": "31d8f074-89e6-4496-b71d-73ff173d6e44",
+                            "email": "ola.ogunseye@outlook.com",
+                            "firstName": "Olawunmi",
+                            "lastName": "ogunseye",
+                            "personalizationAnswers": {
+                                "version": "v4",
+                                "personalization_survey_submitted_at": "2026-01-04T13:05:05.146Z",
+                                "personalization_survey_n8n_version": "2.1.5",
+                                "automationGoalDevops": [
+                                    "ci-cd",
+                                    "cloud-infrastructure-orchestration",
+                                    "data-syncing",
+                                    "monitoring-alerting",
+                                    "ticketing-systems-integrations",
+                                    "incident-response",
+                                    "reporting"
+                                ],
+                                "companyType": "saas",
+                                "role": "it"
+                            },
+                            "settings": {
+                                "userActivated": true,
+                                "easyAIWorkflowOnboarded": true,
+                                "firstSuccessfulWorkflowId": "4HJANbuRGqXIgiKh",
+                                "userActivatedAt": 1777604693988,
+                                "npsSurvey": {
+                                    "responded": true,
+                                    "lastShownAt": 1778160322586
+                                }
+                            },
+                            "disabled": false,
+                            "mfaEnabled": false,
+                            "lastActiveAt": "2026-05-12",
+                            "isPending": false
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "tags": [],
+    "activeVersion": null
+}
