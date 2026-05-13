@@ -13,26 +13,40 @@
 | **n8n** | Workflow automation platform (self-hosted via Docker) |
 | **n8n MCP Server** | Programmatic workflow creation and management via Claude Code |
 | **Gmail API** | Email polling via `n8n-nodes-base.gmailTrigger` (OAuth2) |
-| **Slack API** | Direct message delivery via `n8n-nodes-base.slack` (OAuth2) |
+| **Slack API** | Direct message delivery via custom Slack app (Bot Token) |
+| **Anthropic API** | Claude Haiku for email summarisation |
+| **Google Calendar API** | Calendar event fetching for morning digest |
 | **Docker** | n8n runtime environment |
 
 ---
 
 ## Architecture
 
-- Two-node linear flow: **Gmail Trigger → Slack**
-- Gmail Trigger polls every 10 minutes for unread emails using OAuth2 credentials
-- Slack node sends a formatted DM containing: sender, subject, date, and snippet
-- Polling trigger pattern (not webhook) — n8n initiates checks on a schedule
-- Workflow created programmatically via n8n MCP tools, not the visual editor
+### Workflow 1: Gmail → Slack Notifier
+Full production-hardened pipeline:
+```
+Gmail Trigger → Dedupe Check → Filter → Summarise → Has Attachment?
+                                                          │ TRUE          │ FALSE
+                                                          ▼               ▼
+                                                  Attachment Alert      Slack ── Error Alert
+```
+
+### Workflow 2: Morning Digest
+Daily scheduled briefing:
+```
+Schedule Trigger (9am) → Gmail Search → Get Calendar Events → Format Digest → Slack
+```
 
 ---
 
 ## Key Files & Locations
 
 - `CLAUDE.md` — this file (project context for Claude Code)
-- n8n workflow — ID: `V1jrrxRM3JYx3zgd` (created 2026-05-11, inactive pending credential linking)
-- Credentials — Gmail OAuth2 and Slack OAuth2 configured in the n8n UI (never stored in code or version control)
+- `docs/phase1-hardening.md` — Phase 1 implementation guide (error handling, deduplication, hosting)
+- `docs/phase2-enhancements.md` — Phase 2 implementation guide (filter, AI summary, attachments, digest)
+- n8n Workflow 1 — Gmail → Slack Notifier (ID: `V1jrrxRM3JYx3zgd`, created 2026-05-11)
+- n8n Workflow 2 — Morning Digest (created 2026-05-13)
+- Credentials — Gmail OAuth2, Google Calendar OAuth2, Slack Bot Token — configured in n8n UI (never stored in code)
 
 ---
 
@@ -106,13 +120,21 @@ Expressions go in node parameter values, wrapped in `{{ }}`.
 
 ---
 
-## Extension Ideas
+## Completed Enhancements
 
-- Filter node between Gmail and Slack to notify only on emails from specific senders
-- Conditional branch for emails with attachments — separate Slack message
-- Replace Slack DM with channel post for team-wide visibility
-- Add Claude API node to summarise long emails before sending the DM
-- Multi-trigger dashboard consolidating Gmail + Calendar + GitHub into a single Slack digest
+- [x] Error handler branch — Slack Error Alert on workflow failure
+- [x] Duplicate email filter — static data deduplication via Code node
+- [x] Smart keyword filter — IF node filters on `urgent` subject keyword
+- [x] AI summarisation — Claude Haiku summarises emails before Slack DM
+- [x] Attachment detection — separate Slack alert for emails with attachments
+- [x] Morning digest — daily 9am Slack DM combining Gmail + Google Calendar
+
+## Extension Ideas (Backlog)
+
+- Move off localhost — deploy n8n to Railway, DigitalOcean, or n8n Cloud
+- Filter by sender — extend the IF node to also match specific email addresses
+- GitHub integration — add GitHub notifications to the morning digest
+- Weekly summary — aggregate digest covering the past 7 days
 
 ---
 

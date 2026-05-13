@@ -1,45 +1,67 @@
-# Gmail → Slack DM Notification
+# Gmail → Slack Automation Suite
 
-An automated workflow built with [n8n](https://n8n.io) that monitors a Gmail inbox and instantly notifies you via Slack direct message whenever a new unread email arrives.
-
----
-
-## Overview
-
-This workflow eliminates the need to constantly check your inbox. The moment a new email lands, you receive a structured Slack DM containing everything you need to decide whether to act — sender, subject, date, and a preview of the message body.
-
-**Trigger:** Gmail inbox (polls every 10 minutes)  
-**Action:** Slack direct message to a specified user  
-**Platform:** n8n (self-hosted)
+A production-hardened n8n automation suite built in two phases. It monitors a Gmail inbox, filters and summarises emails with AI, detects attachments, and delivers a daily morning briefing combining email and calendar data — all via Slack DM.
 
 ---
 
-## How It Works
+## Workflows
+
+### 1. Gmail → Slack Notifier
+
+Polls Gmail every 10 minutes. When an unread email with `urgent` in the subject arrives, it deduplicates, summarises with Claude AI, detects attachments, and sends a formatted Slack DM.
 
 ```
-Gmail Inbox  →  n8n Polling Trigger  →  Slack DM
+Gmail Trigger → Dedupe Check → Filter → Summarise (Claude) → Has Attachment?
+                                                                  │ TRUE          │ FALSE
+                                                                  ▼               ▼
+                                                          Attachment Alert      Slack DM
+                                                                        ↘      ↙
+                                                                      Error Alert
 ```
 
-1. Every 10 minutes, n8n checks the connected Gmail account for new unread emails
-2. When one is found, it extracts the key details from the email
-3. A formatted direct message is sent to the configured Slack user immediately
+**Slack DM format (normal email):**
+```
+New email from Ayo <ayo.ai.automation@gmail.com>
+Subject: urgent: verify your account
+
+Summary:
+Ayo is notifying you that you need to complete a verification
+step before you can send messages from your toll-free number.
+The process is quick to complete.
+```
+
+**Slack DM format (email with attachment):**
+```
+📎 New email WITH ATTACHMENT from Ayo <ayo.ai.automation@gmail.com>
+Subject: urgent: contract attached
+
+Summary:
+...
+
+Action: Log in to Gmail to view the attachment.
+```
 
 ---
 
-## Slack Message Format
+### 2. Morning Digest
 
-Each notification arrives as a clean, readable DM:
+Fires at 9am every day. Fetches overnight urgent unread emails and today's Google Calendar events, then sends a single structured Slack DM.
 
 ```
-📧 New email received!
+Schedule Trigger (9am) → Gmail Search → Get Calendar Events → Format Digest → Slack DM
+```
 
-From: Sender Name <sender@example.com>
-Subject: Meeting follow-up
-Date: 12/05/2026, 09:30:00
+**Slack DM format:**
+```
+🌅 Morning Digest — 13 May 2026
 
-Hi Ayo, just following up on our conversation yesterday...
+📧 Urgent Emails:
+• From: Ayo <ayo.ai.automation@gmail.com>
+  Subject: urgent: action required
 
-Automated with this n8n workflow
+📅 Today's Calendar:
+• Team standup — 2026-05-13T09:30:00+01:00
+• Client call — 2026-05-13T14:00:00+01:00
 ```
 
 ---
@@ -48,114 +70,111 @@ Automated with this n8n workflow
 
 | Component | Technology |
 |---|---|
-| Workflow automation | [n8n](https://n8n.io) (self-hosted via Docker) |
+| Workflow automation | n8n (self-hosted via Docker) |
 | Email source | Gmail API (OAuth2) |
-| Notification delivery | Slack API (OAuth2) |
+| Notification delivery | Slack API (custom bot, Bot Token) |
+| AI summarisation | Anthropic Claude Haiku |
+| Calendar data | Google Calendar API (OAuth2) |
 | Runtime | Docker |
 
 ---
 
-## Prerequisites
+## Project Phases
 
-- n8n instance running (self-hosted or cloud)
-- A Gmail account with API access enabled
-- A Slack workspace with permission to create apps
-- OAuth2 credentials for both Gmail and Slack (see setup below)
+### Phase 1 — Hardening
+
+Making the workflow production-safe.
+
+| Task | Status | Description |
+|---|---|---|
+| Task 1 — Error handler | ✅ Done | Error branch sends Slack alert on failure |
+| Task 2 — Deduplicate | ✅ Done | Static data prevents duplicate DMs |
+| Task 3 — Move off localhost | ⏳ Backlog | Deploy to cloud host for 24/7 operation |
+
+See [docs/phase1-hardening.md](docs/phase1-hardening.md) for full implementation steps.
+
+### Phase 2 — Enhancements
+
+Making the workflow smarter.
+
+| Task | Status | Description |
+|---|---|---|
+| Task 1 — Smart filter | ✅ Done | IF node filters on `urgent` keyword |
+| Task 2 — AI summary | ✅ Done | Claude Haiku summarises emails |
+| Task 3 — Attachment detection | ✅ Done | Separate alert for emails with files |
+| Task 4 — Morning digest | ✅ Done | Daily Gmail + Calendar briefing |
+
+See [docs/phase2-enhancements.md](docs/phase2-enhancements.md) for full implementation steps.
 
 ---
 
 ## Setup Guide
 
-### 1. Import the Workflow
+### Prerequisites
 
-In your n8n instance:
+- n8n instance running (self-hosted via Docker)
+- Google Cloud project with Gmail API and Google Calendar API enabled
+- Slack workspace with a custom bot app created
 
-1. Go to **Workflows → Import**
-2. Upload `workflow.json` from this repository
-3. The workflow will be imported in an **inactive** state
+### Credentials Required
 
-### 2. Create Slack OAuth2 Credentials
-
-1. Go to [api.slack.com/apps](https://api.slack.com/apps) and click **Create New App → From scratch**
-2. Navigate to **OAuth & Permissions**
-3. Under **Redirect URLs**, add:
-   ```
-   http://localhost:5678/rest/oauth2-credential/callback
-   ```
-4. Under **Bot Token Scopes**, add: `chat:write`, `users:read`, `im:write`
-5. Click **Install to Workspace** and authorise
-6. In n8n, go to **Credentials → New → Slack OAuth2 API**
-7. Enter your app's **Client ID** and **Client Secret** (from Basic Information in your Slack app)
-8. Click **Connect my account** and complete the OAuth flow
-9. Name the credential `Slack OAuth2` and save
-
-### 3. Create Gmail OAuth2 Credentials
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com) and create a new project
-2. Enable the **Gmail API**
-3. Create an **OAuth 2.0 Client ID** (Application type: Web application)
-4. Add the redirect URI:
-   ```
-   http://localhost:5678/rest/oauth2-credential/callback
-   ```
-5. In n8n, go to **Credentials → New → Gmail OAuth2 API**
-6. Enter your **Client ID** and **Client Secret**
-7. Click **Connect my account** and authorise access
-8. Name the credential `Gmail OAuth2` and save
-
-### 4. Configure the Workflow
-
-1. Open the imported workflow in n8n
-2. Click the **Slack** node
-3. Link the `Slack OAuth2` credential
-4. In the **User** field, select the Slack user who should receive the DMs
-5. Click the **Gmail Trigger** node and link the `Gmail OAuth2` credential
-6. Save the workflow
-
-### 5. Activate
-
-Toggle the workflow from **Inactive** to **Active** in the top-right of the canvas. The workflow will begin polling immediately.
-
----
-
-## Workflow Configuration
-
-| Setting | Value |
+| Credential | Used By |
 |---|---|
-| Poll interval | Every 10 minutes |
-| Email filter | Unread only |
-| Timezone | Europe/London |
-| Execution order | v1 |
+| Gmail OAuth2 | Gmail Trigger, Gmail Search |
+| Google Calendar OAuth2 | Get Calendar Events |
+| Slack Bot Token (`xoxb-`) | All Slack nodes |
+| Anthropic API Key | Summarise node |
+
+### Slack App Setup
+
+1. Go to [api.slack.com/apps](https://api.slack.com/apps) → **Create New App → From scratch**
+2. Name: `n8n Notifier`, select your workspace
+3. Go to **OAuth & Permissions → Bot Token Scopes**, add:
+   - `chat:write`, `im:write`, `im:read`, `users:read`, `channels:read`
+4. Click **Install to Workspace** → copy the `xoxb-` Bot Token
+5. In n8n: **Credentials → Add → Slack → Access Token** → paste the token
+
+### Gmail + Google Calendar OAuth2 Setup
+
+1. Go to [console.cloud.google.com](https://console.cloud.google.com)
+2. Create a project → enable **Gmail API** and **Google Calendar API**
+3. Create an OAuth 2.0 Client ID (Web application)
+4. Add redirect URI: `http://localhost:5678/rest/oauth2-credential/callback`
+5. In n8n: create **Gmail OAuth2** and **Google Calendar OAuth2** credentials using the Client ID and Secret
+
+### Importing the Workflows
+
+1. In n8n go to **Workflows → Import**
+2. Import `workflow.json`
+3. Link credentials to each node
+4. Activate the workflow
 
 ---
 
-## Customisation
+## Key Lessons
 
-**Change the poll interval**  
-Open the Gmail Trigger node and adjust the polling interval (e.g. every 5 minutes, every hour).
-
-**Filter by sender or subject**  
-Add an n8n Filter node between the Gmail Trigger and Slack nodes to only notify on emails matching specific criteria.
-
-**Post to a Slack channel instead of a DM**  
-In the Slack node, change **Send Message To** from `User` to `Channel` and select your target channel.
-
-**Add an AI summary**  
-Insert a Claude or OpenAI node between Gmail and Slack to summarise long emails before the DM is sent.
+- Gmail Trigger with **Simplify ON** outputs capitalised field names: `$json.Subject`, `$json.From`
+- `$getWorkflowStaticData` only persists when the workflow runs via an active trigger, not during manual test runs
+- Slack bots require `im:write` scope to send DMs — `chat:write` alone is not sufficient
+- Google Calendar node should have **Execute Once** enabled when upstream nodes produce multiple items
+- Anthropic node Role must be **User** — the API rejects Assistant as the final message
 
 ---
 
 ## Project Structure
 
 ```
-├── workflow.json   # Exportable n8n workflow definition
-├── CLAUDE.md       # Developer reference (node specs, expressions, troubleshooting)
-└── README.md       # This file
+├── workflow.json              # n8n workflow export (Gmail → Slack Notifier)
+├── CLAUDE.md                  # Developer reference and project context
+├── README.md                  # This file
+└── docs/
+    ├── phase1-hardening.md    # Phase 1 implementation guide
+    └── phase2-enhancements.md # Phase 2 implementation guide
 ```
 
 ---
 
 ## Author
 
-Built by **Ayo** — Senior DevOps & Cloud Engineer transitioning into AI automation consulting.  
-Part of a series of workflow automation projects demonstrating practical AI and integration patterns.
+Built by **Ayo** — Senior DevOps & Cloud Engineer transitioning into AI automation consulting.
+Part of a series of workflow automation projects demonstrating practical AI integration patterns.

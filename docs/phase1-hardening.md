@@ -139,16 +139,111 @@ Gmail Trigger
 ### Definition of Done
 
 Task 1 is complete when:
-- [ ] A second Slack node exists named "Slack — Error Alert"
-- [ ] It is connected via the error output of the original Slack node (red line)
-- [ ] You have deliberately broken the workflow and confirmed the alert fires
-- [ ] You have fixed the workflow and confirmed the normal DM still works
-- [ ] The workflow is saved
+- [x] A second Slack node exists named "Slack — Error Alert"
+- [x] It is connected via the error output of the original Slack node (red line)
+- [x] You have deliberately broken the workflow and confirmed the alert fires
+- [x] You have fixed the workflow and confirmed the normal DM still works
+- [x] The workflow is saved
 
 ---
 
-## Up Next
+## Task 2 — Add a Duplicate Email Filter
 
-**Task 2 — Add a Duplicate Email Filter**
+### The Problem
 
-Prevents the same email from triggering multiple Slack DMs if n8n restarts or the poll fires twice in quick succession.
+If n8n restarts or the Gmail poll fires twice in quick succession, the same email can trigger duplicate Slack DMs. The workflow needs memory of which emails it has already processed.
+
+### The Solution
+
+A Code node that stores processed email IDs in n8n's built-in static data. Before sending a Slack DM, it checks whether the email has already been processed. If yes — drop it silently. If no — add to the list and pass through.
+
+### What the Workflow Looks Like After Task 2
+
+```
+Gmail Trigger
+     │
+     ▼
+Dedupe Check  (Code node — new)
+     │
+     ▼
+   Slack ──── (error) ──▶ Slack — Error Alert
+```
+
+### Step-by-Step Implementation
+
+#### Step 1 — Add a Code node
+1. Click **+** between the Gmail Trigger and Slack nodes
+2. Search for **Code** and select it
+3. Name it **"Dedupe Check"**
+
+#### Step 2 — Paste this code
+
+```javascript
+const staticData = $getWorkflowStaticData('global');
+
+if (!staticData.processedIds) {
+  staticData.processedIds = [];
+}
+
+const emailId = $input.first().json.id;
+
+if (staticData.processedIds.includes(emailId)) {
+  return [];  // Already seen — stop execution
+}
+
+staticData.processedIds.push(emailId);
+
+// Cap at 100 IDs to prevent unbounded growth
+if (staticData.processedIds.length > 100) {
+  staticData.processedIds = staticData.processedIds.slice(-100);
+}
+
+return $input.all();  // New email — pass through
+```
+
+#### Step 3 — Wire it up
+- Connect: `Gmail Trigger → Dedupe Check → Slack`
+- The error branch from Slack stays as-is
+
+#### Step 4 — Test it
+1. Activate the workflow and send a test email
+2. The first poll fires — one DM arrives
+3. The next poll fires for the same email — no second DM (dropped by Dedupe Check)
+
+> **Note:** `$getWorkflowStaticData` does not persist during manual "Execute Workflow" runs. It only persists when the workflow is active and running via the trigger. Always test deduplication with the workflow active.
+
+### Common Mistakes
+
+- **Testing with manual Execute** — static data resets on manual runs. Only test deduplication with the workflow active.
+- **Sending to channel instead of DM** — "Send Message To" must be **User**, not Channel.
+
+### Definition of Done
+
+- [x] "Dedupe Check" Code node sits between Gmail Trigger and Slack
+- [x] First execution sends the DM
+- [x] Second execution with the same email is silently dropped
+- [x] Error branch from Slack still works
+- [x] Workflow saved
+
+---
+
+## Task 3 — Move off localhost
+
+### Status: Backlog
+
+Moving the n8n instance off localhost to a production host so the workflow runs 24/7 without the local machine being on.
+
+### Hosting Options
+
+| Option | Cost | Effort |
+|---|---|---|
+| n8n Cloud | ~$20/month | Lowest — import workflow and go |
+| Railway | Free tier available | Low — one-click Docker deploy |
+| DigitalOcean Droplet | ~$6/month | Medium — Docker Compose on Linux VPS |
+
+### Definition of Done
+
+- [ ] n8n running on a remote host
+- [ ] Both workflows imported and active
+- [ ] Credentials re-linked on the new instance
+- [ ] Workflow polling confirmed working without local machine
