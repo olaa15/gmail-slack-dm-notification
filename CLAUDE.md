@@ -71,6 +71,7 @@ Schedule Trigger (9am) → Gmail Search → Get Calendar Events → Format Diges
 - `CLAUDE.md` — this file (project context for Claude Code)
 - `docs/phase1-hardening.md` — Phase 1 implementation guide (error handling, deduplication, hosting)
 - `docs/phase2-enhancements.md` — Phase 2 implementation guide (filter, AI summary, attachments, digest)
+- `docs/phase3-ai-briefing.md` — Phase 3 implementation guide (AI-composed natural language morning briefing via Anthropic API)
 - n8n Workflow 1 — Gmail → Slack Notifier (ID: `V1jrrxRM3JYx3zgd`, created 2026-05-11)
 - n8n Workflow 2 — Morning Digest (created 2026-05-13)
 - Credentials — Gmail OAuth2, Google Calendar OAuth2, Slack Bot Token — configured in n8n UI (never stored in code)

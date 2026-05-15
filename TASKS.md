@@ -4,6 +4,13 @@ This file tracks work that is planned but not yet implemented. Anyone picking up
 
 ---
 
+## Phase 3: AI Morning Briefing
+**Status:** Not started — full implementation guide in [docs/phase3-ai-briefing.md](docs/phase3-ai-briefing.md)
+
+Upgrade the Morning Digest from a code-formatted bullet list into a natural-language briefing composed by Claude (Anthropic API). Requires an Anthropic API key. Architecture: Schedule Trigger → Gmail Search → Get Calendar Events → Get Weather → Compose Briefing (HTTP Request to Anthropic) → Slack DM.
+
+---
+
 ## Backlog
 
 ### 1. Move off localhost
