@@ -161,7 +161,7 @@ Expressions go in node parameter values, wrapped in `{{ }}`.
 
 ## Extension Ideas (Backlog)
 
-- Move off localhost — deploy n8n to Railway, DigitalOcean, or n8n Cloud
+- ~~Move off localhost~~ — migrated to n8n Cloud (free trial), 2026-05-15
 - Filter by sender — extend the IF node to also match specific email addresses
 - GitHub integration — add GitHub notifications to the morning digest
 - Weekly summary — aggregate digest covering the past 7 days

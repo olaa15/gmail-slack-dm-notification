@@ -13,21 +13,8 @@ Upgrade the Morning Digest from a code-formatted bullet list into a natural-lang
 
 ## Backlog
 
-### 1. Move off localhost
-**Priority:** High (required before sharing with others or running reliably 24/7)
-
-The n8n instance currently runs locally via Docker. If the machine sleeps or restarts, workflows stop.
-
-**Options:**
-- [n8n Cloud](https://app.n8n.cloud) — easiest, managed hosting
-- Railway — cheap self-hosted option (~$5/month)
-- DigitalOcean Droplet — more control, more setup
-
-**Steps:**
-1. Export all workflows from n8n UI (Settings → Export)
-2. Deploy n8n to chosen platform
-3. Re-import workflows and re-link credentials (Gmail OAuth2, Google Calendar OAuth2, Slack Bot Token)
-4. Activate workflows and verify they fire correctly
+### ~~1. Move off localhost~~ — DONE (2026-05-15)
+Both workflows migrated to **n8n Cloud** (free trial). Credentials re-linked, workflows activated and verified.
 
 ---
 
