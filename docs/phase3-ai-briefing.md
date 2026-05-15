@@ -128,4 +128,4 @@ Same trigger → fetch → AI compose → deliver skeleton, different data sourc
 
 ## Status
 
-- [ ] Not yet started
+- [x] Complete — implemented 2026-05-15. Compose Briefing node uses Raw body with JSON.stringify expression to call Anthropic API. Format Digest simplified to extract `content[0].text`.

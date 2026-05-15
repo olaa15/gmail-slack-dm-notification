@@ -157,6 +157,7 @@ Expressions go in node parameter values, wrapped in `{{ }}`.
 - [x] Attachment detection — separate Slack alert for emails with attachments
 - [x] Morning digest — daily 9am Slack DM combining Gmail + Google Calendar
 - [x] Weather in morning digest — Open-Meteo HTTP Request node added between Get Calendar Events and Format Digest; no API key required
+- [x] AI morning briefing (Phase 3) — Compose Briefing HTTP Request node calls Anthropic API (claude-haiku-4-5-20251001); Format Digest simplified to extract natural language response
 
 ## Extension Ideas (Backlog)
 
