@@ -6,6 +6,33 @@
 
 ---
 
+## n8n Workflow Development
+
+- Always use HTTP Request node with raw content type for external API calls (Code node sandbox blocks fetch/require/$helpers)
+- When configuring Respond to Webhook nodes, verify response body is populated and test with the production webhook URL (not test URL)
+- Slack message field names from n8n Gmail trigger are case-sensitive: use From/Subject/Body (capitalized), not from/subject/body
+- For Google Sheets nodes, verify the actual tab name after creation (CSV imports often name tabs after the file, not 'Sheet1')
+
+---
+
+## Deployment & Setup Defaults
+
+- Trigger.dev: use `npx trigger.dev@latest init --yes` to avoid interactive TTY prompts
+- Trigger.dev API polling: use /api/v3/ paths (not /api/v1/)
+- When cloning repos, clone into ~/ (home directory) not inside the current project folder
+- For Vercel deployments, always verify env vars are set in production after deploy and confirm `vercel link` points to the correct project before pushing
+- For Stripe webhooks, use Unix timestamps (not ISO strings) for date fields
+
+---
+
+## File Operations on macOS
+
+- Do not attempt direct file moves in protected folders (Documents, Downloads, Desktop) — write a shell script for the user to execute due to Full Disk Access restrictions
+- Quote or escape '!' characters in shell scripts to avoid zsh history expansion errors
+- When asked to summarize a path, verify it's a file first; if it's a directory, list contents and ask which file
+
+---
+
 ## Tech Stack
 
 | Technology | Role |
@@ -128,6 +155,7 @@ Expressions go in node parameter values, wrapped in `{{ }}`.
 - [x] AI summarisation — Claude Haiku summarises emails before Slack DM
 - [x] Attachment detection — separate Slack alert for emails with attachments
 - [x] Morning digest — daily 9am Slack DM combining Gmail + Google Calendar
+- [x] Weather in morning digest — Open-Meteo HTTP Request node added between Get Calendar Events and Format Digest; no API key required
 
 ## Extension Ideas (Backlog)
 

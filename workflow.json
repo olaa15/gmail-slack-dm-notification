@@ -1,5 +1,5 @@
 {
-    "updatedAt": "2026-05-12T09:58:31.523Z",
+    "updatedAt": "2026-05-15T12:43:29.653Z",
     "createdAt": "2026-05-11T21:22:24.931Z",
     "id": "V1jrrxRM3JYx3zgd",
     "name": "Gmail \u2192 Slack DM Notification",
@@ -40,23 +40,22 @@
         {
             "parameters": {
                 "authentication": "oAuth2",
-                "select": "channel",
-                "channelId": {
+                "select": "user",
+                "text": "=New email from {{ $('Filter').item.json.From }}\nSubject: {{ $('Filter').item.json.Subject }}\n\nSummary:\n{{ $('Summarise').item.json.content[0].text }}\n\n",
+                "otherOptions": {},
+                "userId": {
                     "__rl": true,
-                    "value": "C0B36D983FT",
-                    "mode": "list",
-                    "cachedResultName": "all-n8n-notifier"
-                },
-                "text": "={{ $json.snippet }}",
-                "otherOptions": {}
+                    "value": "U0B3YRFF7SL",
+                    "mode": "id"
+                }
             },
             "id": "slack-1",
             "name": "Slack",
             "type": "n8n-nodes-base.slack",
             "typeVersion": 2.4,
             "position": [
-                512,
-                304
+                1664,
+                224
             ],
             "webhookId": "b9abe00c-2c08-48bf-ba31-a51b51a3d27b",
             "credentials": {
@@ -66,6 +65,184 @@
                 }
             },
             "onError": "continueRegularOutput"
+        },
+        {
+            "parameters": {
+                "authentication": "oAuth2",
+                "select": "user",
+                "text": "=\u26a0\ufe0f *Gmail Notifier \u2014 Workflow Error*  Something went wrong in your Gmail \u2192 Slack notification workflow.  *Time:* {{ $now.toLocaleString('en-GB', {timeZone: 'Europe/London'}) }}  Action required: Log in to n8n and check the execution log.",
+                "otherOptions": {},
+                "userId": {
+                    "__rl": true,
+                    "value": "U0B3YRFF7SL",
+                    "mode": "id"
+                }
+            },
+            "type": "n8n-nodes-base.slack",
+            "typeVersion": 2.4,
+            "position": [
+                1904,
+                224
+            ],
+            "id": "76ac7ad2-1922-4d46-9f0c-dfb0ad14851b",
+            "name": "Error Alert",
+            "webhookId": "7c0fa3d1-d278-4ae5-a92e-ffd77f61e31d",
+            "credentials": {
+                "slackOAuth2Api": {
+                    "id": "uZM9SSbb87wKl1xf",
+                    "name": "Slack OAuth2"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "const staticData = $getWorkflowStaticData('global');\n\nif (!staticData.processedIds) {\n  staticData.processedIds = [];\n}\n\nconst emailId = $input.first().json.id;\n\nif (staticData.processedIds.includes(emailId)) {\n  return [];  // Already seen \u2014 stop execution\n}\n\nstaticData.processedIds.push(emailId);\n\n// Cap at 100 IDs to prevent unbounded growth\nif (staticData.processedIds.length > 100) {\n  staticData.processedIds = staticData.processedIds.slice(-100);\n}\n\nreturn $input.all();  // New email \u2014 pass through\n"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                464,
+                304
+            ],
+            "id": "0385026c-a05f-4aae-bb39-719dd95a5603",
+            "name": "Dedupe Check"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
+                    },
+                    "conditions": [
+                        {
+                            "id": "9f1d5581-d950-4177-8f90-2a1e79228e1b",
+                            "leftValue": "={{ $json.Subject }}",
+                            "rightValue": "=urgent",
+                            "operator": {
+                                "type": "string",
+                                "operation": "contains"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.3,
+            "position": [
+                672,
+                304
+            ],
+            "id": "165af93a-505b-4aed-ad27-7a1dd5eb900e",
+            "name": "Filter"
+        },
+        {
+            "parameters": {
+                "modelId": {
+                    "__rl": true,
+                    "value": "claude-haiku-4-5-20251001",
+                    "mode": "list",
+                    "cachedResultName": "claude-haiku-4-5-20251001"
+                },
+                "messages": {
+                    "values": [
+                        {
+                            "content": "=Summarise this email in 2-3 concise sentences. Focus on what the sender wants or needs.\n\nFrom: {{ $('Filter').item.json.From }}\nSubject: {{ $('Filter').item.json.Subject }}\nEmail: {{ $('Filter').item.json.snippet }}\n"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.anthropic",
+            "typeVersion": 1,
+            "position": [
+                880,
+                208
+            ],
+            "id": "80da2065-07a1-4b8d-a3e1-d3bc5cc0cd73",
+            "name": "Summarise",
+            "credentials": {
+                "anthropicApi": {
+                    "id": "impa0mdRIrQrP0ZW",
+                    "name": "Anthropic account 3"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
+                    },
+                    "conditions": [
+                        {
+                            "id": "97d094a7-331b-4223-b8f3-1b19fba475e5",
+                            "leftValue": "={{ $('Filter').item.json.payload.mimeType }}",
+                            "rightValue": "=multipart/mixed",
+                            "operator": {
+                                "type": "string",
+                                "operation": "equals"
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.3,
+            "position": [
+                1232,
+                208
+            ],
+            "id": "2789cafd-e49d-4cf8-9593-30727741b535",
+            "name": "Has Attachment"
+        },
+        {
+            "parameters": {
+                "authentication": "oAuth2",
+                "select": "user",
+                "text": "=\ud83d\udcce New email WITH ATTACHMENT from {{ $('Filter').item.json.From }} Subject: {{ $('Filter').item.json.Subject }}  Summary: {{ $('Summarise').item.json.content[0].text }}  Action: Log in to Gmail to view the attachment.",
+                "otherOptions": {},
+                "userId": {
+                    "__rl": true,
+                    "value": "U0B3YRFF7SL",
+                    "mode": "id"
+                }
+            },
+            "type": "n8n-nodes-base.slack",
+            "typeVersion": 2.4,
+            "position": [
+                1440,
+                112
+            ],
+            "id": "2ab77db6-7408-41f8-9e52-5f3c37d607e1",
+            "name": "Attachment Alert",
+            "webhookId": "7e937830-1aa5-419f-81b7-a9a01af5665a",
+            "credentials": {
+                "slackOAuth2Api": {
+                    "id": "Q4cmKhHGBRqT0mJT",
+                    "name": "Slack OAuth2"
+                }
+            }
+        },
+        {
+            "parameters": {},
+            "type": "n8n-nodes-base.errorTrigger",
+            "typeVersion": 1,
+            "position": [
+                1664,
+                448
+            ],
+            "id": "error-trigger-1",
+            "name": "Error Trigger"
         }
     ],
     "connections": {
@@ -73,7 +250,74 @@
             "main": [
                 [
                     {
+                        "node": "Dedupe Check",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Dedupe Check": {
+            "main": [
+                [
+                    {
+                        "node": "Filter",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Filter": {
+            "main": [
+                [
+                    {
+                        "node": "Summarise",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Summarise": {
+            "main": [
+                [
+                    {
+                        "node": "Has Attachment",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Has Attachment": {
+            "main": [
+                [
+                    {
+                        "node": "Attachment Alert",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
                         "node": "Slack",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Attachment Alert": {
+            "main": [
+                []
+            ]
+        },
+        "Error Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Error Alert",
                         "type": "main",
                         "index": 0
                     }
@@ -92,75 +336,10 @@
         "templateCredsSetupCompleted": true
     },
     "pinData": {},
-    "versionId": "a9b110c6-d667-46bc-bb96-59eb520ebc94",
+    "versionId": "b8581a24-7ddf-4873-aac8-3195c0884687",
     "activeVersionId": null,
-    "versionCounter": 6,
+    "versionCounter": 24,
     "triggerCount": 0,
-    "shared": [
-        {
-            "updatedAt": "2026-05-11T21:22:24.937Z",
-            "createdAt": "2026-05-11T21:22:24.937Z",
-            "role": "workflow:owner",
-            "workflowId": "V1jrrxRM3JYx3zgd",
-            "projectId": "ZneTUQ4bDzqH3uXl",
-            "project": {
-                "updatedAt": "2026-01-04T13:04:36.275Z",
-                "createdAt": "2026-01-04T13:01:34.470Z",
-                "id": "ZneTUQ4bDzqH3uXl",
-                "name": "Olawunmi ogunseye <ola.ogunseye@outlook.com>",
-                "type": "personal",
-                "icon": null,
-                "description": null,
-                "creatorId": "31d8f074-89e6-4496-b71d-73ff173d6e44",
-                "projectRelations": [
-                    {
-                        "updatedAt": "2026-01-04T13:01:34.470Z",
-                        "createdAt": "2026-01-04T13:01:34.470Z",
-                        "userId": "31d8f074-89e6-4496-b71d-73ff173d6e44",
-                        "projectId": "ZneTUQ4bDzqH3uXl",
-                        "user": {
-                            "updatedAt": "2026-05-11T23:00:24.000Z",
-                            "createdAt": "2026-01-04T13:01:34.245Z",
-                            "id": "31d8f074-89e6-4496-b71d-73ff173d6e44",
-                            "email": "ola.ogunseye@outlook.com",
-                            "firstName": "Olawunmi",
-                            "lastName": "ogunseye",
-                            "personalizationAnswers": {
-                                "version": "v4",
-                                "personalization_survey_submitted_at": "2026-01-04T13:05:05.146Z",
-                                "personalization_survey_n8n_version": "2.1.5",
-                                "automationGoalDevops": [
-                                    "ci-cd",
-                                    "cloud-infrastructure-orchestration",
-                                    "data-syncing",
-                                    "monitoring-alerting",
-                                    "ticketing-systems-integrations",
-                                    "incident-response",
-                                    "reporting"
-                                ],
-                                "companyType": "saas",
-                                "role": "it"
-                            },
-                            "settings": {
-                                "userActivated": true,
-                                "easyAIWorkflowOnboarded": true,
-                                "firstSuccessfulWorkflowId": "4HJANbuRGqXIgiKh",
-                                "userActivatedAt": 1777604693988,
-                                "npsSurvey": {
-                                    "responded": true,
-                                    "lastShownAt": 1778160322586
-                                }
-                            },
-                            "disabled": false,
-                            "mfaEnabled": false,
-                            "lastActiveAt": "2026-05-12",
-                            "isPending": false
-                        }
-                    }
-                ]
-            }
-        }
-    ],
     "tags": [],
     "activeVersion": null
 }
