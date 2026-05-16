@@ -18,17 +18,8 @@ Both workflows migrated to **n8n Cloud** (free trial). Credentials re-linked, wo
 
 ---
 
-### 2. Filter by sender
-**Priority:** Medium
-
-The Gmail → Slack Notifier currently filters only on the `urgent` keyword in the subject line. Extend the IF node to also match emails from specific senders (e.g. your manager, a key client).
-
-**Where to change:** Workflow 1 (Gmail → Slack Notifier) → IF node → add an OR condition on the `From` field.
-
-**Example condition to add:**
-```
-{{ $json.From }} contains "boss@company.com"
-```
+### ~~2. Filter by sender~~ — DONE (2026-05-16)
+Filter node in Workflow 1 updated with three OR conditions: Subject contains `urgent`, OR From contains `seyebadmus@gmail.com`, OR From contains `ola.ogunseye@outlook.com`. Use "contains" (not "is equal to") because Gmail's From field includes the display name, e.g. `"Name <email@address.com>"`.
 
 ---
 

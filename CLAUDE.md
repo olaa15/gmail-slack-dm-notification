@@ -158,11 +158,12 @@ Expressions go in node parameter values, wrapped in `{{ }}`.
 - [x] Morning digest — daily 9am Slack DM combining Gmail + Google Calendar
 - [x] Weather in morning digest — Open-Meteo HTTP Request node added between Get Calendar Events and Format Digest; no API key required
 - [x] AI morning briefing (Phase 3) — Compose Briefing HTTP Request node calls Anthropic API (claude-haiku-4-5-20251001); Format Digest simplified to extract natural language response
+- [x] Filter by sender — Filter node in Workflow 1 extended with OR conditions on `From` field using "contains" for seyebadmus@gmail.com and ola.ogunseye@outlook.com (2026-05-16)
 
 ## Extension Ideas (Backlog)
 
 - ~~Move off localhost~~ — migrated to n8n Cloud (free trial), 2026-05-15
-- Filter by sender — extend the IF node to also match specific email addresses
+- ~~Filter by sender~~ — completed 2026-05-16
 - GitHub integration — add GitHub notifications to the morning digest
 - Weekly summary — aggregate digest covering the past 7 days
 
